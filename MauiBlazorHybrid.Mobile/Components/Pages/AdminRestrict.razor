@@ -1,0 +1,15 @@
+﻿@using MauiBlazorHybrid.SharedComponents.Auth
+
+
+@inject QuizAuthStateProvider AuthStateProvider
+@inject NavigationManager navigationManager
+
+@code {
+    protected override async Task OnInitializedAsync()
+    {
+        App.Current.MainPage.DisplayAlert("Access Denied", "Admin are not allowed for the mobile version", "Ok");
+        await AuthStateProvider.SetLogOutAsync();
+        navigationManager.NavigateTo("/account/login");
+
+    }
+}

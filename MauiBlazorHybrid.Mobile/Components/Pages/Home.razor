@@ -1,0 +1,42 @@
+﻿@page "/"
+@using MauiBlazorHybrid.Mobile.Components.Layout
+@using MauiBlazorHybrid.SharedComponents.Auth
+@using MauiBlazorHybrid.SharedLibrary.Utilities
+@using Microsoft.AspNetCore.Authorization
+@using Microsoft.AspNetCore.Components.Authorization;
+@using MauiBlazorHybrid.SharedComponents.Pages
+
+@inject QuizAuthStateProvider QuizAuthStateProvider
+@inject NavigationManager navigationManager
+
+@layout MobileEmptyLayout
+@attribute [Authorize]
+
+<PageTitle>Quiz</PageTitle>
+<SectionContent SectionName="pageTitle"> Quiz </SectionContent>
+
+
+<AuthorizeView>
+    
+    <Authorized>
+        <AuthorizeView Roles="@nameof(UserRole.Client)" Context="ClientContext">
+            <RedirectToHomePage Url="/student-home" />
+        </AuthorizeView>
+        <AuthorizeView Roles="@nameof(UserRole.Admin)" Context="AdminContex">
+            <AdminRestrict />
+        </AuthorizeView>
+       
+
+    </Authorized>
+</AuthorizeView>
+@code{
+    protected override async Task OnInitializedAsync()
+    {
+        var res=  await QuizAuthStateProvider.InitializeAsync(redirectToLogin: false);
+        if (!res)
+        {
+            navigationManager.NavigateTo("/account/login");
+            return;
+        }
+    }
+}

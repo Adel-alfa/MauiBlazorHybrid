@@ -1,0 +1,45 @@
+﻿@inherits LayoutComponentBase
+
+<div class="page">
+    <div class="sidebar">
+
+        <div class="top-row  navbar navbar-dark">
+            <div class="container-fluid">       
+                <div class="row w-100">
+                    <div class="col-12">
+                        <div class="d-flex align-items-center w-100 gap-2">
+                            <button type="button" class="btn btn-default btn-sm fw-bold" style="color: #FEA116;" @onclick="ToggleMenu">
+                                <SVGIcon class="icon" Elements="@SVGIcons.Menu_2"/>
+                            </button>
+                            <div class="me-auto">
+                                <label class="m-0 h4 fw-blod" style="color: #FEA116;">
+                                    <SectionOutlet SectionName="pageTitle" />
+                                </label>  
+                            </div>
+                        </div>
+                    </div>
+                </div>      
+            </div>
+        </div>
+        @if (openMenu)
+        {
+            <NavMenu OnMenuClosed="ToggleMenu" />
+        }
+        
+    </div>
+
+    <main>
+       
+
+        <article class="content px-4">
+            @Body
+        </article>
+    </main>
+</div>
+@code {
+        private bool openMenu = false;
+        private void ToggleMenu()
+        {
+            openMenu = !openMenu;
+        }
+}

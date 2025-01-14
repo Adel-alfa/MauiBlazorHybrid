@@ -1,0 +1,39 @@
+﻿
+
+@inherits LayoutComponentBase
+
+@inject IPlatform Platform
+
+<div class="page">
+    <main>
+        <article class="content px-4">
+           
+                @if(Platform.IsMobile)
+                {
+                   <div class="px-4-negative" style="margin-top:-1.1rem;  margin-bottom: 15px; height:60px;">
+                        <h4 class="m-0 h4 p-3" style="color: #FEA116; background-color: var(--bgColor);">
+                            <SectionOutlet SectionName="pageTitle" />
+                        </h4>
+                   </div>
+                }
+                else
+                {
+                   <div>
+                        <h1 class="m-0 h4 fw-bold">
+                            <SectionOutlet SectionName="pageTitle" />
+                        </h1>
+                   </div>
+                <hr />
+                }
+                
+           
+           
+            @Body
+        </article>
+    </main>
+
+</div>
+
+@code {
+
+}

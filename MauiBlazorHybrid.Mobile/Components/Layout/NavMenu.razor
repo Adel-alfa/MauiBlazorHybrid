@@ -1,0 +1,48 @@
+﻿
+
+
+
+
+    <div class="offcanvas offcanvas-start show" tabindex="-1" id="offcanvasWithBackdrop" aria-labelledby="offcanvasWithBackdropLabel" aria-modal="true" role="dialog" style="visibility: visible;">
+        <div class="offcanvas-header">
+           @*  <h5 class="offcanvas-title" id="offcanvasWithBackdropLabel">Quiz</h5>
+            <button type="button" class="btn-close text-reset" data-bs-dismiss="offcanvas" aria-label="Close" @onclick="OnMenuClosed"></button> *@
+             <div class="flyout-header">
+                  <h1 class="fw-bold"> Quiz</h1>          
+             </div>
+        </div>
+        <div class="offcanvas-body">
+            <nav class="flex-column">
+                <div class="nav-item px-3">
+                    <NavLink class="nav-link" href="student-home" Match="NavLinkMatch.All" @onclick="OnMenuClosed">
+                        <span class="bi bi-house-door-fill-nav-menu" aria-hidden="true"></span> Home
+                    </NavLink>
+                </div>
+                <div class="nav-item px-3">
+                    <NavLink class="nav-link" href="my-quizes" @onclick="OnMenuClosed">
+                        <span class="bi bi-plus-square-fill-nav-menu" aria-hidden="true"></span> My Quizes
+                    </NavLink>
+                </div>
+                
+                <div class="nav-item px-3">
+                    <NavLink class="nav-link" href="account/logout">
+                        <span class="bi bi-arrow-bar-left mb-3" aria-hidden="true"></span> Logout
+                    </NavLink>
+                </div>
+            </nav>
+            
+        </div>
+         <div class="flyout-footer">
+            <span class="m-0 p-0">Developed by <a href="#" class="text-white">Alfa@ne</a></span>
+         </div>
+    </div>
+
+
+    <div class="offcanvas-backdrop fade show" @onclick="OnMenuClosed"></div>
+
+
+
+@code{
+    [Parameter]public EventCallback OnMenuClosed { get; set; }
+    
+}

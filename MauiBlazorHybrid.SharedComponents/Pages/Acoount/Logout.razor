@@ -1,0 +1,25 @@
+﻿@page "/account/logout"
+<h3>Logout</h3>
+@inject QuizAuthStateProvider authStateProvider
+@inject NavigationManager navigationManager
+<AuthorizeView @ref="authView">
+    <Authorized>
+        <div class="alert alert-info">Logging you out...</div>
+    </Authorized>
+    <NotAuthorized>
+        <div class="alert alert-success">You're logged out. <a href="/account/login">Log in.</a></div>
+    </NotAuthorized>
+</AuthorizeView>
+
+@code {
+    private AuthorizeView? authView;
+    protected override async Task OnInitializedAsync()
+    {
+        if ( authStateProvider._isAuthenticated)
+        {
+            await authStateProvider.SetLogOutAsync();
+            navigationManager.NavigateTo("/account/login", replace: true);
+        }
+        // await base.OnInitializedAsync();
+    }
+}

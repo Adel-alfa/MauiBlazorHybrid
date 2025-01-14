@@ -1,0 +1,20 @@
+﻿@using MauiBlazorHybrid.SharedLibrary
+@inject IAppState AppState
+@if (AppState.LoadingText != null)
+{
+    <div class="fullscreen d-flex justify-content-center align-items-center" style="z-index: 2048" >
+        <div class="overlay fullscreen">
+        </div>
+        <div class="bg-white p-2 shadow" style="z-index: 2049">
+            <p> @AppState.LoadingText....</p>
+        </div>
+
+    </div>
+}
+
+@code {
+    protected override void OnInitialized()
+    {
+        AppState.OnToggleLoader += StateHasChanged;
+    }
+}

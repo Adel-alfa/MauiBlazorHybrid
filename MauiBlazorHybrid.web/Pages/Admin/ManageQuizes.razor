@@ -1,0 +1,136 @@
+﻿@page "/manage-quizes"
+
+@inject IQuizApi QuizApi
+@inject ICategoryApi categoryApi
+@inject IAppState AppState
+
+<SectionContent SectionName="pageTitle"> Gérer les Quiz</SectionContent>
+<div class="container">
+
+    <div class="row">
+        <div class="col-sm-3 ms-auto">
+            <lable class="form-label">Sélectionnez une Catégorie</lable>
+            <select class="form-control" @bind="_selectedCategory" @bind:after="OnSelectedCategoryChanged">
+                <option value="0">Sélectionnez une Catégorie</option>
+                @foreach(var c in _categories)
+                {
+                    <option value="@c.Id">@c.Name</option>
+                }
+            </select>
+        </div>
+    </div>
+    <div class="row">
+        <table class="table table-striped table-hover">
+            <thead>
+                <tr>
+                    <th>Nom</th>
+                    <th>Catégorie</th>
+                    <th>Nombre de Questions</th>
+                    <th>Temps en minutes</th>
+                    <th></th>
+                </tr>
+            </thead>
+            <tbody>
+                @if(_Selectedquizzes.Length == 0)
+                {
+                    <tr>
+                        <td colspan="5">
+                            <p class="text-danger text-center fw-bold"> Aucun quiz trouvé</p>
+                        </td>
+                    </tr>
+                }
+                else
+                {
+                    foreach (var q in _Selectedquizzes )
+                    {
+                        <tr>
+                            <td> @q.Name</td>
+                            <td> @q.CategoryName</td>
+                            <td> @q.TotalQuestions</td>
+                            <td> @q.TimeInMinutes</td>
+                            <td>
+                                <div class="d-flex justify-content-around">
+                                    <a href="/edit-quiz/{@q.Id}" class="btn btn-sm btn-outline-info">
+                                        <SVGIcon class="icon" Elements="@SVGIcons.Edit" Size="20" Color="info"></SVGIcon>
+                                    </a>
+                                    <button class="btn btn-sm btn-outline-info" @onclick="() => OnViewQuizeAsync(q)">
+                                        <SVGIcon class="icon" Elements="@SVGIcons.Eye" Size="20" Color="info"></SVGIcon>
+                                    </button>
+                                    <a href="/quizzes/{@q.Id}/view-students" class="btn btn-sm btn-outline-success">
+                                        <SVGIcon class="icon" Elements="@SVGIcons.Live_view" Size="20" Color="success"></SVGIcon>
+                                    </a>
+                                </div>
+
+                            </td>
+                        </tr>
+                    }
+                }
+            </tbody>
+        </table>
+    </div>
+</div>
+@if(_showQuestionModal)
+{
+    <Modal Title="Questions" OnCancelButtonClick="() => _showQuestionModal = false"
+    OnActionButtonClick="() => _showQuestionModal = false" Size="ModalSize.Large">
+        @foreach (var q in _viewQuestions)
+        {
+            <div class="mb-3 p-2 shadow ">
+                @q.Text
+            </div>
+        }
+    </Modal>
+}
+
+@code {
+    private QuizListDto[] _quizzes = [];
+    private QuizListDto[] _Selectedquizzes = [];
+    private CategoryDto[] _categories = [];
+
+    private QuestionDto[] _viewQuestions = [];
+    private bool _showQuestionModal;
+    private int _selectedCategory = 0;
+    protected override async Task OnInitializedAsync()
+    {
+        AppState.ShowLoader("Récupération des quiz et des catégories");
+
+        try
+        {
+            var quizzesTask = await QuizApi.GetQuizzesAsync();
+            _categories = await categoryApi.GatCategoriesAsync();
+            _quizzes = quizzesTask;
+            _Selectedquizzes = _quizzes;
+        }
+        catch (Exception ex)
+        {
+
+            AppState.ShowError(ex.Message);
+        }
+        finally
+        {
+            AppState.HideLoader();
+        }
+    }
+    private void OnSelectedCategoryChanged()
+    {
+        if(_selectedCategory == 0)
+        {
+            _Selectedquizzes = _quizzes;
+        }
+        else
+        {
+            _Selectedquizzes = _quizzes.Where(_=>_.CategoryId == _selectedCategory).ToArray();
+        }
+    }
+    private void OnEditQuize(QuizListDto dto)
+    {
+
+    }
+    private async Task OnViewQuizeAsync(QuizListDto dto)
+    {
+        AppState.ShowLoader("Récupération des questions");
+        _viewQuestions = await QuizApi.GetQuizQuisQuestionsAsync(dto.Id);
+        AppState.HideLoader();
+        _showQuestionModal = true;
+    }
+}

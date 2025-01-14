@@ -1,0 +1,89 @@
+﻿@page "/account/login"
+
+
+
+@inject IAuthApi authApi
+@inject NavigationManager navigationManager
+@inject QuizAuthStateProvider authStateProvider
+<h4> admin@system.com</h4>
+<h4> Password@123</h4>
+<hr/>
+
+<div class="container">
+    <div class="row d-flex justify-content-md-center">
+
+        <div class="col-lg-6">
+
+            <EditForm Model="Input" method="post" Enhance OnValidSubmit="LoginUser" FormName="login">
+                <DataAnnotationsValidator />               
+                <ValidationSummary class="text-danger" role="alert" />
+                <div class="card">
+                    <div class="card-header"> Connexion </div>
+                    <div class="card-body">
+                        <div class="form-floating mb-3">
+                            <InputText @bind-Value="Input.Email" class="form-control" autocomplete="Email" aria-required="true" placeholder="E-mail" />
+                            <label for="Email" class="form-label">E-mail</label>
+                            <ValidationMessage For="() => Input.Email" class="text-danger" />
+                        </div>
+                        <div class="form-floating mb-3">
+                            <InputText type="password" @bind-Value="Input.Password" class="form-control" autocomplete="current-password" aria-required="true" placeholder="Mot de passe" />
+                            <label for="password" class="form-label">Mot de passe</label>
+                            <ValidationMessage For="() => Input.Password" class="text-danger" />
+                        </div>
+                        @if (!string.IsNullOrEmpty(message))
+                        {
+                            <div class=" mb-3 bg-danger  p-2">
+                                <p> @message</p>
+                            </div>
+                        }
+                        <div class="from-group mt-3 d-flex justify-content-between">
+                            <a href="/account/register" class="btn btn-ouline-primary">S'inscrire</a>
+                            <button type="submit" class="btn  btn-primary">Se connecter</button>
+
+
+                        </div>
+                    </div>
+                </div>
+
+
+            </EditForm>
+
+        </div>
+
+    </div>
+
+</div>
+
+@code {
+    private LoginDto Input { get; set; } = new();
+    string message = string.Empty;
+    public async Task LoginUser()
+    {
+        var res = await authApi.LoginAsync(Input);
+        if (res.HasError)
+            message = res.ErrorMessage!;
+        else
+        {
+            var user = res.user;
+            await authStateProvider.SetLoginAsync(user);
+
+            RedirectToHome();
+        }
+
+    }
+
+    protected override async Task OnInitializedAsync()
+    {
+        if( authStateProvider._isAuthenticated)
+            RedirectToHome(replace: true);
+    }
+    private void RedirectToHome(bool replace=false)
+    {
+        var redirectTo = authStateProvider.User.Role switch
+        {
+            nameof(UserRole.Client) => "/student-home",
+            _ => "/"
+        };
+        navigationManager.NavigateTo(redirectTo, replace);
+    }
+}

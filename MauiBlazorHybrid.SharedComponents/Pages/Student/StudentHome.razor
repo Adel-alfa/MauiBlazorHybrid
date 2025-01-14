@@ -1,0 +1,150 @@
+﻿@page "/student-home"
+@using PSC.Blazor.Components.Icons
+
+@inject NavigationManager navigationManager
+@inject IAppState AppState
+@inject ICategoryApi categoryApi
+@inject IStudentQuizApi StudentQuizApi
+@inject QuizState quizState
+@inject IPlatform Platform
+
+<SectionContent SectionName="pageTitle">@(Platform.IsMobile ? "Quiz" : "Home")</SectionContent>
+<div class="container">
+    <div class="row">
+        <div class="col-sm-3 ms-auto mb-3 mb-sm-0">
+            <lable class="form-label">Sélectionnez une Catégorie</lable>
+            <select class="form-control" @bind="_selectedCategory" @bind:after="OnSelectedCategoryChanged">
+                <option value="0">Sélectionnez une Catégorie</option>
+                @foreach (var c in _categories)
+                {
+                    <option value="@c.Id">@c.Name</option>
+                }
+            </select>
+        </div>
+    </div>
+    <div class="row">
+        @if (!isLoading &&  _quizzes.Length == 0)
+        {
+            var message = _selectedCategory == 0 ? 
+                 "Il n'y a pas de quiz actifs pour le moment!"
+                : "Il n'y a pas de quiz actif dans la catégorie sélectionnée";
+            <p class="h4 text-danger mt-5 text-center"> @message </p>
+        }
+        else
+        {
+            foreach (var q in _quizzes)
+            {
+                <div class="col-sm-4">
+                    <div class="box bg-white p-3">
+                        <hr />
+                        <table class="table">
+                            <tr>
+                                <td>
+                                    <label class="fw-bold">Catégorie</label>
+                                </td>
+                                <td>
+                                    <span>@q.CategoryName</span>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>
+                                    <label class="fw-bold">Nombre de Questions</label>
+                                </td>
+                                <td>
+                                    <span>@q.TotalQuestions questions</span>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>
+                                    <label class="fw-bold">Temps total</label>
+                                </td>
+                                <td>
+                                    <span>@q.TimeInMinutes minutes</span>
+                                </td>
+                            </tr>
+                        </table>
+                        <hr />
+                        <button type="button" class="btn btn-sm btn-outline-info" @onclick="() => startQuiz =q">
+
+                            <SVGIcon Elements="@SVGIcons.Alarm" Size="32"  Color="#a43a40" />
+                            Commencer le quiz
+                        </button>
+                    </div>
+                </div>
+            }
+        }
+
+    </div>
+</div>
+@if (startQuiz != null)
+{
+    var title = $"Commencer {startQuiz.Name}?";
+    <Modal Title="@title" OnCancelButtonClick="() => startQuiz = null" OnActionButtonClick="AllezAQuizAsync">
+        <p class="m-0 p-3"> Do you  want to start this quiz?<br /> You have to finish it in one session!</p>
+    </Modal>
+}
+
+@code {
+    private CategoryDto[] _categories = [];
+    private QuizListDto[] _quizzes = [];
+    private int _selectedCategory;
+    private bool isLoading;
+    private QuizListDto? startQuiz;
+    protected override async Task OnInitializedAsync()
+    {
+        AppState.ShowLoader("Récupération des quiz et des catégories");
+
+        try
+        {
+            isLoading = true;
+            var  categoriesTask =  categoryApi.GatCategoriesAsync();
+            _quizzes = await StudentQuizApi.GetActiveQuizzesAsync(_selectedCategory);
+            _categories = await categoriesTask;
+        }
+        catch (Exception ex)
+        {
+
+            AppState.ShowError(ex.Message);
+        }
+        finally
+        {
+            AppState.HideLoader();
+            isLoading = false;
+        }
+    }
+    private async Task OnSelectedCategoryChanged()
+    {
+        AppState.ShowLoader("Récupération des quiz");
+        _quizzes = await StudentQuizApi.GetActiveQuizzesAsync(_selectedCategory);
+        AppState.HideLoader();
+    }
+    private async Task AllezAQuizAsync()
+    {
+        AppState.ShowLoader("Préparation du Quiz");
+        try
+        {
+           // var response = await StudentQuizApi.testQuizAsync();
+            QuizApiResponse<int> response = await StudentQuizApi.StartQuizAsync(startQuiz.Id);
+            if(!response.IsSuccess)
+            {
+
+                return;
+            }
+            int studentQuizId = response.Data;
+
+
+           quizState.StartQuiz(startQuiz, studentQuizId);
+            
+            navigationManager.NavigateTo("student-quiz");
+        }
+        catch (Exception ex)
+        {
+            
+            throw;
+        }
+        finally
+        {
+            AppState.HideLoader();
+        }
+    }
+}

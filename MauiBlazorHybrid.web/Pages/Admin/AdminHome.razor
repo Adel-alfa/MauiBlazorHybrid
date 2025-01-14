@@ -1,0 +1,60 @@
+﻿@page "/admin-home"
+
+@inject IAppState AppState
+@inject IAdminApi AdminApi
+<SectionContent SectionName="pageTitle"> Home</SectionContent>
+
+
+@if(data != null)
+{
+   
+
+    <div class="container mt-5">
+        <div class="row">
+            <div class="col-md-4 ">
+                <div class="card h-100">
+                    <div class="card-header">
+                        <h4>Catégories</h4>
+                    </div>
+                    <div class="card-body">
+                        <p class="card-text"> @data.TotalCategories</p>
+                        <p class="card-text"></p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card">
+                    <div class="card-header">
+                        <h4>Étudiants</h4>
+                    </div>
+                    <div class="card-body">
+                        <p class="card-text"> @data.TotalStudent Total.</p>
+                        <p class="card-text"> @data.ApprovedStudents Approuvé</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card">
+                    <div class="card-header">
+                        <h4>Quiz</h4>
+                    </div>
+                    <div class="card-body">
+                        <p class="card-text"> @data.TotalQuizzes Total</p>
+                        <p class="card-text"> @data.ActiveQuizzes Actif</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+      
+    </div>
+}
+@code {
+    private AdminDashboardDto? data ;
+    protected override async Task OnInitializedAsync()
+    {
+        AppState.ShowLoader("");
+        data = await AdminApi.GetHomeStatisticDataAsync();
+        AppState.HideLoader();
+    }
+}

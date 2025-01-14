@@ -1,0 +1,74 @@
+﻿@page "/my-quizes"
+
+
+@using Microsoft.AspNetCore.Components.QuickGrid
+@inject IStudentQuizApi StudentQuizApi
+@inject IAppState AppState
+@inject IPlatform Platform
+
+<SectionContent SectionName="pageTitle">Mes Quiz</SectionContent>
+
+<div class="container-fluid px-4-negative" style="@containerStyle">
+    <div class="row">
+        <div class="col-sm-12">
+            <div class="d-flex flex-column" style="@flexStyle">
+                <div class="table-responsive flex-grow-1">
+                    <QuickGrid ItemsProvider="itemsProvider" Pagination="pagination" Class="table table-striped table-hover">
+                        <PropertyColumn Property="q=>q.QuizName" Title="Nom du Quiz" />
+                        <PropertyColumn Property="q=>q.CategoryName" Title="Nom de la Catégorie" />
+                        <PropertyColumn Property="q=>q.StartedOn" Title="Date de Début" Format="dd mm yyyy hh:mm" />
+                        <PropertyColumn Property="q=>q.Status" />
+
+                        <TemplateColumn Title="Terminé">
+                            @if (context.CompletedOn.HasValue)
+                            {
+                                <span>@context.CompletedOn.Value.ToString("dd mm yyyy hh:mm")</span>
+                            }
+                            else
+                            {
+                                if (context.Status == "Exited")
+                                {
+                                    <span>Le quiz n'a pas été terminé: terminé</span>
+                                }
+                                else
+                                {
+                                    <span>Le quiz n'a pas été terminé: --</span>
+                                }
+                            }
+                        </TemplateColumn>
+                        <PropertyColumn Property="q=>q.score" Class="text-center" />
+                        <PropertyColumn Property="q=>q.overallScoreStr" Class="text-center" Title="Note Globale" />
+                    </QuickGrid>
+
+                </div>
+                <Paginator State="pagination" />
+            </div>
+        </div>
+    </div>
+</div>
+@code {
+    private GridItemsProvider<StudentQuizDto>? itemsProvider;
+    private  int pageSize = 10;
+    private PaginationState pagination = new() ;
+
+    private string flexStyle ="";
+    private string  containerStyle = "";
+
+    protected override void  OnInitialized()
+    {
+
+        if(Platform.IsMobile)
+        {
+            flexStyle =  "height: calc(100vh - 75px - 15px);";
+            containerStyle = "width: calc(100% + 3rem);";
+        }
+        pagination.ItemsPerPage = pageSize;
+        itemsProvider = async (requset) =>
+        {
+            AppState.ShowLoader("Fetching quizzes");
+            var pageResult = await StudentQuizApi.GetStudentQuizzesAsync(requset.StartIndex, requset.Count ?? pageSize);
+            AppState.HideLoader();
+            return GridItemsProviderResult.From(pageResult.Record, pageResult.TotalCount);
+        };
+    }
+}

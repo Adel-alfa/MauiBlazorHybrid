@@ -1,0 +1,52 @@
+﻿@using PSC.Blazor.Components.Icons
+@implements IDisposable
+
+<label class="fw-bold"> 
+    <SVGIcon class="icon" Elements="@SVGIcons.Alarm" Color="@textcolor" />
+    <span class="@textClass">@currentTime</span>/@totalTime
+    
+</label>
+
+@code {
+    [Parameter, EditorRequired] public int TotalMinutes { get; set; }
+    [Parameter]public EventCallback OnTimerStop { get; set; }
+    private string totalTime = "";
+    private string currentTime ="00:00";
+    private PeriodicTimer periodicTimer;
+    private DateTime endTime;
+
+    private string textcolor ="Green";
+    private string  textClass = "";
+
+    protected override async void OnInitialized()
+    {
+        totalTime = $"{ TotalMinutes.ToString().PadLeft(2, '0')}:00";
+        endTime = DateTime.Now.AddMinutes(TotalMinutes);
+        periodicTimer = new PeriodicTimer(TimeSpan.FromSeconds(1));
+        HandleTimerAsync();
+    }
+    private async Task HandleTimerAsync()
+    {
+        while(await periodicTimer!.WaitForNextTickAsync())
+        {
+            var diffSpan = endTime - DateTime.Now;
+            if(diffSpan <= TimeSpan.Zero)
+            {
+                periodicTimer.Dispose();
+                periodicTimer = null;
+                await OnTimerStop.InvokeAsync();
+                return;
+            }
+            if(diffSpan.TotalSeconds <=90)
+            {
+                textcolor = "Red"; textClass = "text-danger";
+            }
+            currentTime = diffSpan.ToString(@"mm\:ss");
+            await InvokeAsync( StateHasChanged);
+        }
+    }
+    public void Dispose()
+    {
+        periodicTimer.Dispose();
+    }
+}

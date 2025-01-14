@@ -1,0 +1,38 @@
+﻿@page "/"
+@using MauiBlazorHybrid.SharedComponents.Pages
+@using MauiBlazorHybrid.SharedLibrary.Utilities
+@using Microsoft.AspNetCore.Authorization
+@using Microsoft.AspNetCore.Components.Authorization;
+
+
+@attribute [Authorize]
+@inject QuizAuthStateProvider authStateProvider
+
+<PageTitle>Home</PageTitle>
+<SectionContent SectionName="pageTitle"> Home</SectionContent>
+
+
+Welcome to your new app.
+<AuthorizeView>
+    <Authorizing>
+        <h1> Authorizing ..... </h1>
+    </Authorizing>
+    <NotAuthorized>
+        <h1>Hello, world! </h1>
+    </NotAuthorized>
+    <Authorized>
+        <AuthorizeView Roles="@nameof(UserRole.Client)" Context="ClientContext">
+            <RedirectToHomePage Url="/student-home" />
+        </AuthorizeView>
+        <AuthorizeView Roles="@nameof(UserRole.Admin)" Context="AdminContex">
+            <RedirectToHomePage Url="/admin-home" />
+        </AuthorizeView>
+        <p>user  @authStateProvider.User.Name Authorized</p>
+        
+    </Authorized>
+</AuthorizeView>
+
+
+@code {
+   
+}

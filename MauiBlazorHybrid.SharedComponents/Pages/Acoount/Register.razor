@@ -1,0 +1,105 @@
+﻿@page "/account/register"
+
+
+
+@inject IAuthApi authApi
+@inject NavigationManager navigationManager
+@inject QuizAuthStateProvider authStateProvider
+
+
+
+<div class="container">
+    <div class="row d-flex justify-content-md-center">
+
+        <div class="col-lg-6">
+
+            <EditForm Model="Input" method="post" Enhance OnValidSubmit="RegisterUserAsync" FormName="login">
+                <DataAnnotationsValidator />
+                <ValidationSummary class="text-danger" role="alert" />
+                <div class="card">
+                    <div class="card-header"> Créer un compte </div>
+                    <div class="card-body">
+                        <div class="form-floating mb-3">
+                            <InputText @bind-Value="Input.Name" class="form-control" autocomplete="Name" aria-required="true" placeholder="Nom" />
+                            <label for="Email" class="form-label">Nom</label>
+                            <ValidationMessage For="() => Input.Name" class="text-danger" />
+                        </div>
+                        <div class="form-floating mb-3">
+                            <InputText @bind-Value="Input.Email" class="form-control" autocomplete="Email" aria-required="true" placeholder="E-mail" />
+                            <label for="Email" class="form-label">E-mail</label>
+                            <ValidationMessage For="() => Input.Email" class="text-danger" />
+                        </div>
+                        <div class="form-floating mb-3">
+                            <InputText @bind-Value="Input.Phone" class="form-control" autocomplete="Phone" aria-required="true" placeholder="Phone" />
+                            <label for="Email" class="form-label">Phone</label>
+                            <ValidationMessage For="() => Input.Phone" class="text-danger" />
+                        </div>
+                        <div class="form-floating mb-3">
+                            <InputText type="password" @bind-Value="Input.Password" class="form-control" autocomplete="current-password" aria-required="true" placeholder="Mot de passe" />
+                            <label for="password" class="form-label">Mot de passe</label>
+                            <ValidationMessage For="() => Input.Password" class="text-danger" />
+                        </div>
+                        <div class="form-floating mb-3">
+                            <InputText type="password" @bind-Value="Input.ConfirmPassword" class="form-control" autocomplete="new-password" aria-required="true" placeholder="Mot de passe" />
+                            <label for="confirm-password">Confirmer le mot de passe</label>
+                            <ValidationMessage For="() => Input.ConfirmPassword" class="text-danger" />
+                        </div>
+                        @if (!string.IsNullOrEmpty(message))
+                        {
+                            <div class=" mb-3 bg-danger  p-2">
+                                <p> @message</p>
+                            </div>
+                        }
+                        <div class="from-group mt-3 d-flex justify-content-between">
+                            <a href="/account/login" class="btn btn-ouline-primary">Connexion</a>
+                            <button type="submit" class="btn btn-primary">Se inscrir</button>
+                        </div>
+                    </div>
+                </div>
+
+
+            </EditForm>
+
+        </div>
+
+    </div>
+    
+</div>
+@if(_showSuccessAlert)
+{
+    <Modal Title="Success" OnActionButtonClick="OnModalClose" OnCancelButtonClick="OnModalClose">
+        <p class="h5 text-success"> votre compte a été créé avec succès.<br />
+            Vous pourrez vous connecter une fois que l'administrateur aura approuvé votre compte.
+       </p>
+    </Modal>
+}
+
+@code {
+    private RegisterDto Input { get; set; } = new();
+    string message = string.Empty;
+    private bool _showSuccessAlert ;
+    public async Task RegisterUserAsync()
+    {
+        var res = await authApi.RegisterAsync(Input);
+        if (res.HasError){
+            message = res.ErrorMessage!;
+            return;
+        }
+
+        else
+        {
+            _showSuccessAlert = true;          
+        }
+
+    }
+
+    protected override async Task OnInitializedAsync()
+    {
+        if (authStateProvider._isAuthenticated)
+            navigationManager.NavigateTo("/", replace: true);
+    }
+    private void OnModalClose(){
+        Input = new();
+        navigationManager.NavigateTo("/account/login");
+    }
+}

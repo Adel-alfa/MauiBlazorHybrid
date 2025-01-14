@@ -1,0 +1,242 @@
+﻿@page "/student-quiz"
+
+
+@layout QuizPageLayout
+
+@inject QuizState quizState
+@inject NavigationManager navigationManager
+@inject IStudentQuizApi StudentQuizApi
+@inject IAppState AppState
+@inject IPlatform Platform
+
+<SectionContent SectionName="pageTitle"> Quiz - @quizState.Quiz?.Name [<small>@quizState.Quiz?.TotalQuestions question(s)</small>]</SectionContent>
+@if (quizState.Quiz != null)
+{
+    <div class="row mb-3">
+
+        <div class="col-sm-12 d-flex flex-column" style="@(Platform.IsMobile ? "height: calc(100vh - 75px - 15px)":"")">
+           <div class="quiz-header">
+                <div class="my-1 d-flex justify-content-between align-items-center">
+                    <h6> @questions.Count of @quizState.Quiz.TotalQuestions</h6>
+                    <QuizTimer TotalMinutes="quizState.Quiz.TimeInMinutes" OnTimerStop="AutoSubmitAsync" />
+                </div>
+                <h4 class=" mt-3 m-0 fw-bold">@question.Text</h4>
+                <hr />
+           </div>
+            <div class="quiz-body flex-grow-1">
+                @foreach (var o in question.Options)
+                {
+                    <div class="d-flex gap-2 p-3 mb-3 bg-white option-box" @onclick="()=> selectedOptionId = o.Id">
+                        <input type="radio" class="" name="rdo_@question.Id" id="rdo_@o.Id" checked="@(selectedOptionId == o.Id)" @onchange="()=> selectedOptionId = o.Id" />
+                        <label for="rdo_@o.Id" class="d-block">@o.Text</label>
+                    </div>
+                }
+           </div>
+            <div class="quiz-footer">
+                @if (errorMessage != null)
+                {
+                    <div class="bg-danger my-3 p-2 d-flex justify-content-between align-items-center">
+                        <lebal class="text-white">@errorMessage</lebal>
+                        <button type="button" class="btn btn-sm btn-light" @onclick="()=>errorMessage=null">
+                            <SVGIcon class="icon" Elements="@SVGIcons.Circle_x" />
+                        </button>
+                    </div>
+                }
+                <hr />
+                <div class="d-flex justify-content-between align-items-center">
+                    <button type="button" class="btn btn-primary" @onclick="()=> exitConfirmation = true"> <SVGIcon class="icon" Elements="@SVGIcons.Transfer_out" /> Exit test</button>
+                    @if (!isLastQuestion)
+                    {
+                        <button type="button" class="btn btn-primary" @onclick="SaveAndNextAsync"> <SVGIcon class="icon" Elements="@SVGIcons.File_plus" /> Save & Next</button>
+                    }
+                    else
+                    {
+                        <button type="button" class="btn btn-success" @onclick="SubmitQuizAsync"> <SVGIcon class="icon" Elements="@SVGIcons.Send" /> submit</button>
+                    }
+                </div>
+           </div>
+        </div>
+    </div>
+}
+
+@if(submitQuizMessage != null)
+{
+    <Modal Title="Quiz Submitted" OnActionButtonClick="RedirectToMyQuiz" OnCancelButtonClick="RedirectToMyQuiz">
+        <p class="text-success h5">@submitQuizMessage</p>
+    </Modal>
+}
+@if (exitConfirmation)
+{
+    <Modal Title="Exit Quiz" ActionButtonText="Yes" OnActionButtonClick="ExitQuizAsync" OnCancelButtonClick="()=> exitConfirmation = false">
+        <h5 class="text-danger">Do you want realy exit </h5>
+    </Modal>
+}
+
+@code {
+    private QuestionDto question = new();
+    private int selectedOptionId;
+    private  List<QuestionDto> questions = [];
+    private bool isLastQuestion => questions.Count == quizState.Quiz.TotalQuestions;
+    private string? errorMessage;
+    private string? submitQuizMessage;
+    private bool exitConfirmation;
+
+    protected override async Task OnInitializedAsync()
+    {
+        if (quizState.Quiz == null || quizState.StudentQuizId == 0)
+        {
+            navigationManager.NavigateTo("/student-home", replace: true);
+            return;
+        }
+        await FetchQuestionAsync();
+    }
+   
+
+    private async Task SaveAndNextAsync()
+    {
+
+        if (await SaveAnswerAsync())
+            await FetchQuestionAsync();
+
+    }
+    private async Task SubmitQuizAsync()
+    {
+
+        if (await SaveAnswerAsync())
+        {
+            AppState.ShowLoader("submitting  quiz");
+            try
+            {
+                QuizApiResponse result = await StudentQuizApi.SubmitQuizAsync(quizState.StudentQuizId);
+                if (!result.IsSuccess)
+                {
+                    errorMessage = result.ErrorMessage;
+                    return;
+                }
+                submitQuizMessage = "Quiz a été soumise avec succès";
+            }
+            catch (Exception ex)
+            {
+
+                errorMessage = ex.Message;
+
+            }
+            finally
+            {
+                AppState.HideLoader();
+            }
+        }
+
+
+    }
+    private async Task AutoSubmitAsync()
+    {
+       
+        try
+        {
+            AppState.ShowLoader("Auto submitting quiz");
+            QuizApiResponse result = await StudentQuizApi.AutoSubmitQuizAsync(quizState.StudentQuizId);
+            if (!result.IsSuccess)
+            {
+                errorMessage = result.ErrorMessage;
+                return;
+            }
+            submitQuizMessage = "Quiz a bien été envoyé";
+            //RedirectToMyQuiz();
+        }
+        catch (Exception ex)
+        {
+
+            errorMessage = ex.Message;
+        }
+        finally
+        {
+            AppState.HideLoader();
+        }
+
+    }
+    private async Task FetchQuestionAsync()
+    {
+        AppState.ShowLoader("Récupération de la question");
+        try
+        {
+            QuizApiResponse<QuestionDto> questionResult = await StudentQuizApi.GetNextQuestionAsync(quizState.StudentQuizId);
+            if (!questionResult.IsSuccess || questionResult.Data == null)
+            {
+                // Alert
+                return;
+            }
+            question = questionResult.Data;
+            questions.Add(question);
+        }
+        catch (Exception ex)
+        {
+
+            AppState.ShowError(ex.Message);
+        }
+        finally
+        {
+            AppState.HideLoader();
+        }
+    }
+    private async Task<bool> SaveAnswerAsync()
+    {
+        errorMessage = null;
+        if (selectedOptionId == 0)
+        {
+            errorMessage = "Veuillez sélectionner une option";
+            return false;
+        }
+        AppState.ShowLoader("Sauvegarder votre réponse");
+        try
+        {
+            QuziQuestionAnswerDto dto = new(quizState.StudentQuizId, question.Id, selectedOptionId);
+            QuizApiResponse result = await StudentQuizApi.SaveQuestionAnswerAsync(quizState.StudentQuizId, dto);
+            if (!result.IsSuccess)
+            {
+                errorMessage = result.ErrorMessage;
+                return false;
+            }
+            selectedOptionId = 0;
+            return true;
+        }
+        catch (Exception ex)
+        {
+
+            errorMessage = ex.Message;
+            return false;
+        }
+        finally
+        {
+            AppState.HideLoader();
+        }
+    }
+    private void RedirectToMyQuiz()
+    {
+        quizState.StopQuiz();
+        navigationManager.NavigateTo("/my-quizes", replace : true);
+    }
+    private async Task ExitQuizAsync()
+    {
+        try
+        {
+            AppState.ShowLoader("Quitter le quiz");
+            QuizApiResponse result = await StudentQuizApi.ExitQuizAsync(quizState.StudentQuizId);
+            if(!result.IsSuccess)
+            {
+                errorMessage = result.ErrorMessage;
+                return;
+            }
+            RedirectToMyQuiz();
+        }
+        catch (Exception ex)
+        {
+            
+            errorMessage = ex.Message;
+        }
+        finally
+        {
+            AppState.HideLoader();
+        }
+    }
+}

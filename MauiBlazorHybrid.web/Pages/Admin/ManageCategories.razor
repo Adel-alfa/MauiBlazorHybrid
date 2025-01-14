@@ -1,0 +1,146 @@
+﻿@page "/manage-categories"
+
+@inject IAppState AppState
+@inject ICategoryApi categoryApi
+
+<SectionContent SectionName="pageTitle"> Gérer les Catégories</SectionContent>
+<div class="container">
+
+    <div class="row justify-content-between">
+        <div class="col-sm-7 me-auto">
+            <table class="table table-striped table-hover">
+                <thead>
+                    <tr>
+                        <th>#</th>
+                        <th>Id</th>
+                        <th>Nom</th>
+                        <th></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @if(categories.Length == 0)
+                    {
+                        <tr>
+                            <td colspan="4">
+                                <p class="text-danger h4"> Aucune catégorie trouvée!!</p>
+                            </td>
+                        </tr>
+                    }
+                    else
+                    {
+                        int number = 1;
+                        @foreach (var item in categories)
+                        {
+                            <tr>
+                                <td>@(number++) </td>
+                                <td>@item.Id</td>
+                                <td>@item.Name</td>
+                                <td>
+                                    <button class="btn btn-sm btn-outline-primary" @onclick="() => OnEditCategory(item)">
+                                        <SVGIcon class="icon" Elements="@SVGIcons.Edit" Size="20" Color="Blue"></SVGIcon>
+                                    </button>                                    
+                                </td>
+                            </tr>
+                        }
+                    }
+                </tbody>
+            </table>
+        </div>
+        <div class="col-sm-4">
+            <EditForm Model="_category" OnvalidSubmit="SaveCategoryAsync">
+                <DataAnnotationsValidator />
+                <div class="bg-white p-3">
+                    <div class="m-0 fw-bold">Ajouter / Modifier une Catégorie</div>
+                    <hr />
+                    <div class="">
+                        <div class="form-floating mb-3">
+                            <InputText @bind-Value="_category.Name" class="form-control form-control-sm" autocomplete="Name" aria-required="true" placeholder="Nom de la Catégorie" />
+                            <label for="Email" class="form-label">Nom</label>
+                            <ValidationMessage For="() => _category.Name" class="text-danger" />
+                        </div>
+                        @if(errorMessage is not null)
+                        {
+                            <div class="mb-3 border border-danger border-1 d-flex justify-content-between gap-2 align-items-end align-items-end">
+                                <p class="m-0 p-1">@errorMessage</p>
+                                <button type="button" class="btn btn-sm btn-outline-danger" @onclick="()=>errorMessage=null">
+                                    <SVGIcon class="icon" Elements="@SVGIcons.Trash" Size="20" Color="Red"></SVGIcon>
+                                </button>
+                            </div>
+                        }
+                        <div class="d-flex justify-content-between align-items-center">  
+                            @if(!showBusyButton)
+                            {
+                                <button type="button" class="btn btn-sm btn-outline-danger" @onclick="()=>_category=new()">Annuler
+                                    <SVGIcon class="icon" Elements="@SVGIcons.Circle_off" Color="red" />
+                                </button>
+                                <button type="submit" class="btn btn-sm btn-success">Sauvegarder
+                                    <SVGIcon class="icon" Elements="@SVGIcons.File_plus" />
+                                </button>
+                            }
+                            else
+                            {
+                                <button type="button" disabled class="btn btn-sm btn-secondary">Annuler</button>
+                                <button type="button" disabled class="btn btn-sm btn-secondary">Sauvegarder... 
+                                    <SVGIcon class="icon" Elements="@SVGIcons.File_plus" />
+                                    </button>
+                            }
+
+                        </div>
+                    </div>
+                </div>
+            </EditForm>
+        </div>
+    </div>
+</div>
+
+@code {
+    private CategoryDto[] categories = [];
+
+    private CategoryDto _category = new();
+    private bool showBusyButton ;
+    private string errorMessage;
+    protected override async Task OnInitializedAsync()
+    {
+        AppState.ShowLoader("Fetching categories");
+        
+        await  LoadCategoriesAsync();
+        AppState.HideLoader();
+    }
+
+    private void OnEditCategory(CategoryDto category)
+    {
+        _category = category;
+    }
+    private async Task SaveCategoryAsync()
+    {
+        try
+        {
+            AppState.ShowLoader("Récupération des catégories");
+            showBusyButton = true;
+            errorMessage = null;
+            var response = await categoryApi.SaveCategoryAsync(_category);
+            if(!response.IsSuccess)
+            {
+                errorMessage = response.ErrorMessage ?? "quelque chose a mal tourné!";
+                return;
+            }
+            _category = new();
+            await LoadCategoriesAsync();
+        }
+        catch (Exception ex)
+        {
+
+            errorMessage = ex.Message;
+        }
+        finally{
+            showBusyButton = false;
+            AppState.HideLoader();
+        }
+    }
+    private async Task LoadCategoriesAsync()=>   
+       categories= await categoryApi.GatCategoriesAsync();
+    
+        
+
+ 
+}

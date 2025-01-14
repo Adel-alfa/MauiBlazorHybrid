@@ -1,0 +1,182 @@
+﻿@page "/add-quiz"
+@page "/edit-quiz/{quizId:guid?}"
+
+
+@inject IAppState AppState
+@inject IQuizApi QuizApi
+@inject ICategoryApi categoryApi
+@inject IJSRuntime JsRuntime
+@inject NavigationManager navigationManager
+
+
+<SectionContent SectionName="pageTitle"> > @(IsNew ? "Ajouter un Quiz" : "Quiz de Mise à jour")</SectionContent>
+
+<div class="container">
+   
+    <EditForm Model="_quiz">
+        <DataAnnotationsValidator />
+        <div class="row">
+            <div class="col-sm-3">
+                <div class="mb-3">
+                    <label class="form-label">Catégorie</label>
+                    <InputSelect @bind-Value="_quiz.CategoryId" class="form-control">
+                        <opion value="0">sélectionnez une Catégorie </opion>
+                        @foreach (var cat in _categories)
+                        {
+                            <option value="@cat.Id">@cat.Name</option>
+                        }
+                    </InputSelect>
+                    <ValidationMessage For="()=> _quiz.CategoryId" />
+                </div>
+            </div>
+            <div class="col-sm-3">
+                <div class="mb-3">
+                    <label for="Name" class="form-label">Nom</label>
+                    <InputText @bind-Value="_quiz.Name" class="form-control" autocomplete="Name" aria-required="true" placeholder="Nom du Quiz" />                        
+                    <ValidationMessage For="() => _quiz.Name" class="text-danger" />
+                </div>
+            </div>
+            <div class="col-sm-3">
+                <div class="mb-3">
+                    <label for="TotalQuestions" class="form-label">Nombre Total de Questions</label>
+                    <InputNumber @bind-Value="_quiz.TotalQuestions" class="form-control"  aria-required="true"  />                        
+                    <ValidationMessage For="() => _quiz.TotalQuestions" class="text-danger" />
+                </div>
+            </div>
+            <div class="col-sm-3">
+                <div class="mb-3">
+                    <label for="TimeInMinutes" class="form-label">Durée du quiz en minutes</label>
+                    <InputNumber @bind-Value="_quiz.TimeInMinutes" class="form-control" aria-required="true" />
+                    <ValidationMessage For="() => _quiz.TimeInMinutes" class="text-danger" />
+                </div>
+            </div>
+            <hr class="my-2"/>
+            <h5 style="font-weight:600;">Questions</h5>
+            <ol class="mb-1">
+                @foreach (var q in _quiz.Questions)
+                {
+                    var random = Guid.NewGuid();
+                    <li class="p-3 mb-3 bg-white">
+                        <textarea @bind="q.Text" class="form-control" placeholder="write a question here" ></textarea>
+                        <h6 class="my-2 fw-bold">Options</h6>
+                        <ol>
+                            @foreach(var o in q.Options)
+                            {
+                                <li class="p-2 mb-2">
+                                    <div class="input-group">
+                                        <div class="input-group-text">
+                                            <input class="form-check-input mt-0" type="radio" name="otion_radio_@random" checked="@o.IsCorrect"  @onchange="()=>SetOptionAsCorrectAnswer(q,o)">
+                                        </div>
+                                        <input type="text" @bind="o.Text" class="form-control" >
+                                        <button type="button" class="btn btn-sm btn-outline-danger" @onclick="()=>q.Options.Remove(o)">
+                                            <SVGIcon class="icon" Elements="@SVGIcons.Trash" Size="20" Color="Red"></SVGIcon>
+                                        </button>
+                                    </div>
+
+                                </li>
+                            }
+                        </ol>
+                        <div class="d-flex justify-content-end">
+                            <button class="btn btn-sm btn-outline-info" @onclick="() => q.Options.Add(new())">
+                                <SVGIcon class="icon" Elements="@SVGIcons.Square_plus" Size="20" Color="info"> </SVGIcon>
+                                Option
+                            </button>
+                        </div>
+                    </li>
+                }
+            </ol>
+
+            <div class="mx-2 d-flex justify-content-center mb-4">
+                <button class="btn btn-sm btn-outline-info" @onclick="() =>_quiz.Questions.Add(GetNewQuestionInstance())">
+                    <SVGIcon class="icon" Elements="@SVGIcons.Square_plus" Size="20" Color="info"> </SVGIcon>
+                    Question
+                </button>
+            </div>
+
+            <hr />
+            <div class="d-flex mb-4 justify-content-center align-items-center gap-5">
+                <div class="form-check form-switch">
+                    <InputCheckbox @bind-Value="_quiz.IsActive" class="form-check-input" type="checkbox" role="switch" id="QuizIsActive" />
+                    <label class="form-check-label" for="QuizIsActive">Is Active</label>
+                </div>
+                <button type="submit" class="btn btn-success" @onclick="saveQuizAsync">
+                    Sauvegarder le Quiz <SVGIcon class="icon" Elements="@SVGIcons.File_plus" />
+                    </button>
+            </div>
+
+        </div>
+    </EditForm>
+
+</div>
+
+
+@code {
+    [Parameter] public Guid? QuizId { get; set; }
+    public bool IsNew => !QuizId.HasValue || QuizId.Value == Guid.Empty;
+    private QuizSaveDto _quiz = new();
+    private CategoryDto[] _categories = [];
+    protected override async Task OnInitializedAsync()
+    {
+
+        if(!IsNew)
+        {
+            AppState.ShowLoader("Récupération du quiz");
+            var quiz = await QuizApi.GetQuizToEditAsync(QuizId!.Value);
+            if (quiz == null)
+            {
+                navigationManager.NavigateTo("/manage-quizes");
+            }
+            _quiz = quiz!;
+        }
+        else
+        {
+            var question = GetNewQuestionInstance();
+
+            _quiz.Questions = [question];           
+        }
+        AppState.ShowLoader("Récupération des catégories");
+        _categories = await categoryApi.GatCategoriesAsync();
+        AppState.HideLoader();
+    }
+    protected override void OnParametersSet()
+    {
+        if (!QuizId.HasValue && _quiz.Id != Guid.Empty)
+        {
+            _quiz = new();
+            _quiz.Questions = [GetNewQuestionInstance()];
+        }
+    }
+    private QuestionDto GetNewQuestionInstance()=> new QuestionDto
+    {
+        Options = [new(), new()]
+    };
+    private void SetOptionAsCorrectAnswer(QuestionDto qu ,OptionDto op)
+    {
+        foreach (var option in qu.Options)
+        {
+
+            option.IsCorrect = false;
+        }
+        op.IsCorrect = true;
+    }
+    private async Task saveQuizAsync()
+    {
+        var validateMessage = _quiz.Validator();
+        if(!string.IsNullOrEmpty(validateMessage))
+        {
+            await ShowAlertAsync(validateMessage);
+            return;
+        }
+        AppState.ShowLoader("Quiz de sauvegarde");
+        var response = await QuizApi.SaveQuizAsync(_quiz);
+        AppState.HideLoader();
+        if(!response.IsSuccess)
+        {
+            await ShowAlertAsync(response.ErrorMessage);
+            return;
+        }
+        navigationManager.NavigateTo("/manage-quizes");
+    }
+    private async Task ShowAlertAsync(string message, string title = "Erreur") =>
+     await JsRuntime.InvokeVoidAsync("alert", $"{title}\n{message}");
+}

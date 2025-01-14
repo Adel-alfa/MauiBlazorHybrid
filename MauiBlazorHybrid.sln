@@ -1,0 +1,52 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.12.35527.113
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MauiBlazorHybrid.web", "MauiBlazorHybrid.web\MauiBlazorHybrid.web.csproj", "{DF14C8CA-869E-49D8-937A-0DF3D8BD477F}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MauiBlazorHybrid.SharedLibrary", "MauiBlazorHybrid.SharedLibrary\MauiBlazorHybrid.SharedLibrary.csproj", "{3A51F638-539A-45C8-804F-3F3D38C9E1FA}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MauiBlazorHybrid.Api", "MauiBlazorHybrid.Api\MauiBlazorHybrid.Api.csproj", "{D5344917-EEF6-4F6D-92C0-A8C72D587F68}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MauiBlazorHybrid.SharedComponents", "MauiBlazorHybrid.SharedComponents\MauiBlazorHybrid.SharedComponents.csproj", "{DF0CD274-0450-4589-B1A8-E7B0510CDD39}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MauiBlazorHybrid.Mobile", "MauiBlazorHybrid.Mobile\MauiBlazorHybrid.Mobile.csproj", "{7E8BFBF7-0736-4E00-AD46-9E47BCA9EAA0}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "SolutionItems", "SolutionItems", "{21494F6E-752D-4ED3-B69C-10B47A6F8AF1}"
+	ProjectSection(SolutionItems) = preProject
+		SolutionItems\Capture.png = SolutionItems\Capture.png
+	EndProjectSection
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{DF14C8CA-869E-49D8-937A-0DF3D8BD477F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{DF14C8CA-869E-49D8-937A-0DF3D8BD477F}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{DF14C8CA-869E-49D8-937A-0DF3D8BD477F}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{DF14C8CA-869E-49D8-937A-0DF3D8BD477F}.Release|Any CPU.Build.0 = Release|Any CPU
+		{3A51F638-539A-45C8-804F-3F3D38C9E1FA}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{3A51F638-539A-45C8-804F-3F3D38C9E1FA}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{3A51F638-539A-45C8-804F-3F3D38C9E1FA}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{3A51F638-539A-45C8-804F-3F3D38C9E1FA}.Release|Any CPU.Build.0 = Release|Any CPU
+		{D5344917-EEF6-4F6D-92C0-A8C72D587F68}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{D5344917-EEF6-4F6D-92C0-A8C72D587F68}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{D5344917-EEF6-4F6D-92C0-A8C72D587F68}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{D5344917-EEF6-4F6D-92C0-A8C72D587F68}.Release|Any CPU.Build.0 = Release|Any CPU
+		{DF0CD274-0450-4589-B1A8-E7B0510CDD39}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{DF0CD274-0450-4589-B1A8-E7B0510CDD39}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{DF0CD274-0450-4589-B1A8-E7B0510CDD39}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{DF0CD274-0450-4589-B1A8-E7B0510CDD39}.Release|Any CPU.Build.0 = Release|Any CPU
+		{7E8BFBF7-0736-4E00-AD46-9E47BCA9EAA0}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{7E8BFBF7-0736-4E00-AD46-9E47BCA9EAA0}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{7E8BFBF7-0736-4E00-AD46-9E47BCA9EAA0}.Debug|Any CPU.Deploy.0 = Debug|Any CPU
+		{7E8BFBF7-0736-4E00-AD46-9E47BCA9EAA0}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{7E8BFBF7-0736-4E00-AD46-9E47BCA9EAA0}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+EndGlobal

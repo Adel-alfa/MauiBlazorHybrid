@@ -1,0 +1,22 @@
+﻿@inject IAppState AppState
+@if(message != null)
+{
+    <Modal Title="Error" OnActionButtonClick="()=> message= null" OnCancelButtonClick="()=> message= null">
+        <p class="text-danger"> @message</p>
+    </Modal>
+}
+
+
+@code {
+    private string? message { get; set; }
+    protected override void OnInitialized()
+    {
+        AppState.OnShowError += (string errorText) =>
+        {
+            message = errorText;
+            InvokeAsync(StateHasChanged);
+        };
+    }
+
+}
+ 

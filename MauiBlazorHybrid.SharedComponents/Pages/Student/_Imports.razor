@@ -1,0 +1,8 @@
+﻿@using MauiBlazorHybrid.SharedLibrary.Utilities
+@using Microsoft.AspNetCore.Authorization
+@using Microsoft.AspNetCore.Components.Sections
+@using MauiBlazorHybrid.SharedLibrary
+@using PSC.Blazor.Components.Icons
+@using MauiBlazorHybrid.SharedComponents.Layout
+
+@attribute [Authorize(Roles = nameof(UserRole.Client))]
